@@ -1,8 +1,9 @@
 require('dotenv').config();
 let mongoose = require('mongoose');
 
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-// mongoose.connect(process.env.MONGO_URI);
+// useNewUrlParser and useUnifiedTopology are deprecated with at least version 8.8.4
+// mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGO_URI);
 
 const Schema = mongoose.Schema;
 
@@ -18,10 +19,16 @@ let Person = mongoose.model("Person", personSchema);
 // (3) Create and save a record of a model
 const createAndSavePerson = (done) => {
 	let janeFonda = new Person({name: "Jane Fonda", age: 84, favoriteFoods: ["eggs", "fish", "fresh fruit"]});
-	janeFonda.save( (err, data) => {
-		if (err) return console.error(err);
-		done(null, data);
-	})
+	
+	// Apparently versions of mongoose past 5.11 no longer accept callback functions for Model.prototype.save
+
+	// janeFonda.save( (err, data) => {
+	// 	if (err) return done(err);
+	// 	done(null, data);
+	// 	console.log(data + ' - is the data print');
+	// })
+	janeFonda.save();
+	// console.log('test my console log'); note this does print to the terminal when I npm run start and pass the challenge on FCC.
 };
 
 // (4) Create many People with `Model.create()`
@@ -31,15 +38,6 @@ var arrayOfPeople = [
 	{name: "Robert", age: 78, favoriteFoods: ["wine"]}
 ];
 
-// const createManyPeople = (arrayOfPeople, done) => {
-// 	Person.create(arrayOfPeople, (err, people) => {
-// 		if (err) {
-// 			return done(err);
-// 		}
-// 		return done(null, people);
-// 	});
-// };
-
 var createManyPeople = function(arrayOfPeople, done) {
 	Person.create(arrayOfPeople, function (err, people) {
 		if (err) return console.log(err);
@@ -47,6 +45,7 @@ var createManyPeople = function(arrayOfPeople, done) {
 	});
 };
 
+// (5) use model.find() to Search Your Database
 const findPeopleByName = (personName, done) => {
 	Person.find({name: personName}, function (err, people) {
 		if (err) return console.log(err)
@@ -54,6 +53,7 @@ const findPeopleByName = (personName, done) => {
 	})
 };
 
+// (6) use model.findOne() to return a single matching document from your database
 const findOneByFood = (food, done) => {
 	Person.findOne({favoriteFoods: food}, function (err, findFood) {
 		if (err) return console.log(err)
@@ -61,10 +61,15 @@ const findOneByFood = (food, done) => {
 	})
 };
 
+// (7) use model.findById() to search your Database By_id
 const findPersonById = (personId, done) => {
-  done(null /*, data*/);
+	Person.findById(personId, function(err, findId) {
+		if (err) return console.log(err)
+		done(null, findId);
+	})
 };
 
+// (8) Perform classic updates by running find, edit, then save
 const findEditThenSave = (personId, done) => {
   const foodToAdd = "hamburger";
 
